@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Confirm Delete</title>
+  </head>
+  <body>
+    <h1>Confirm Delete</h1>
+    <p>
+      Are you sure you want to delete the post titled "{{ post['title'] }}"?
+    </p>
+    <form method="post">
+      <button type="submit">Yes, delete it</button>
+      <a href="{{ url_for('view_post', id=post['id']) }}">Cancel</a>
+    </form>
+  </body>
+</html>

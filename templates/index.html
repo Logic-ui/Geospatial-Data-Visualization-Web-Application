@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename= 'css/style.css') }}"
+    />
+    <title>FlaskBlog</title>
+    <body>
+{% extends 'base.html' %} {% block content %}
+<h1>{% block title %} Welcome to FlaskBlog {% endblock %}</h1>
+{% for post in posts %}
+<a href="{{ url_for('post', post_id=post['id']) }}"></a>
+  <h2>{{ post['title'] }}</h2>
+</a>
+<span class="badge badge-primary">{{ post['created'] }}</span>
+<a href="{{ url_for('edit', id=post['id']) }}">
+  <span class="badge badge-warning">Edit</span>
+</a>
+<a href="{{ url_for('view_post', id=post['id']) }}">
+  <span class="badge badge-warning">View</span>
+</a>  
+<hr />
+{% endfor %} {% endblock %}
+</body>
+</head>
+</html>

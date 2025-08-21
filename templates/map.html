@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaflet Map in Flask</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100vh;
+      }
+      .coordinate {
+        position: absolute;
+        bottom: 10px;
+        right: 50%;
+      }
+      .leaflet-popup-content-wrapper {
+        background-color: #000000;
+        color: #fff;
+        border: 1px solid red;
+        border-radius: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map">
+      <div class="leaflet-control coordinate"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='data/point.js') }}"></script>
+    <script src="{{ url_for('static', filename='data/line.js') }}"></script>
+    <script src="{{ url_for('static', filename='data/polygon.js') }}"></script>
+    <script>
+      // Map initialization
+      var map = L.map("map").setView([33.72, 73.06], 8);
+
+      // OSM layer
+      var osm = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }
+      ).addTo(map);
+
+      // Satellite layer
+      var satellite = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+                maxZoom: 20,
+                subdomains:['mt0','mt1','mt2','mt3']
+              });
+
+      // Topographic map
+      var topo = L.tileLayer(
+        "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.opentopomap.org/copyright">OpenTopoMap</a> contributors',
+        }
+      );
+
+      // Watercolor map
+      var watercolor = L.tileLayer(
+        "'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'", {
+          attribution: '&copy; <a href="http://maps.stamen.com/">Stamen Watercolor</a> contributors',
+        }
+      );
+
+      // Dark map
+      var dark = L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> contributors',
+        }
+      );
+
+      // Streets map
+      var streets = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }
+      );
+
+      // Additional GeoJSON layers or custom markers
+      var pointData = L.geoJSON(pointJson).addTo(map);
+      var lineData = L.geoJSON(lineJson).addTo(map);
+      var polygonData = L.geoJSON(polygonJson, {
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup("<b>Name: </b>" + feature.properties.name);
+        },
+        style: {
+          fillColor: "red",
+          fillOpacity: 1,
+          color: "#c0c0c0",
+        },
+      }).addTo(map);
+
+      // Base maps for layer control
+      var baseMaps = {
+        OSM: osm,
+        Satellite: satellite,
+        Topographic: topo,
+        Watercolor: watercolor,
+        Dark: dark,
+        Streets: streets,
+      };
+
+      // Overlay maps
+      var overlayMaps = {
+        "Point Data": pointData,
+        "Line Data": lineData,
+        "Polygon Data": polygonData,
+      };
+
+      // Layer control
+      L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+
+      // Display coordinates on mouse move
+      map.on("mousemove", function (e) {
+        document.getElementsByClassName("coordinate")[0].innerHTML =
+          "Lat: " + e.latlng.lat + ", Lng: " + e.latlng.lng;
+      });
+
+      // Fetch data and add markers dynamically
+      fetch("/your-python-endpoint")
+        .then((response) => response.json())
+        .then((markers) => {
+          var myIcon = L.icon({
+            iconUrl: "{{ url_for('static', filename='img/red_marker.png') }}",
+            iconSize: [40, 40],
+          });
+
+          markers.forEach((markerData) => {
+            var marker = L.marker([markerData.lat, markerData.lng], {
+              icon: myIcon,
+            }).bindPopup(markerData.popup);
+
+            marker.addTo(map);
+          });
+        });
+    </script>
+  </body>
+</html>
